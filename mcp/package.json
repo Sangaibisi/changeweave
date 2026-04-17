@@ -1,0 +1,59 @@
+{
+  "name": "changeweave-mcp",
+  "version": "0.1.0",
+  "description": "ChangeWeave MCP Server — AI-native code change analyst for intelligent changelog generation",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "changeweave-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src --ext .ts",
+    "clean": "rimraf dist",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "changelog",
+    "git",
+    "ai",
+    "release-notes",
+    "model-context-protocol",
+    "code-analysis"
+  ],
+  "author": "Sangaibisi",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Sangaibisi/changeweave.git",
+    "directory": "mcp"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@octokit/rest": "^21.1.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

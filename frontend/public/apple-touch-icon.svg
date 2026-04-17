@@ -1,0 +1,14 @@
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" rx="40" fill="url(#cai-apple)"/>
+  <rect x="39" y="62" width="56" height="11" rx="5.5" fill="#09090b"/>
+  <rect x="39" y="90" width="73" height="11" rx="5.5" fill="#09090b" opacity="0.6"/>
+  <rect x="39" y="118" width="39" height="11" rx="5.5" fill="#09090b" opacity="0.3"/>
+  <path d="M135 36.5L140.6 51.7L155.8 56.3L140.6 60.8L135 76L129.4 60.8L114.2 56.3L129.4 51.7Z" fill="#09090b"/>
+  <path d="M109.7 112.5L112.5 121.9L121.9 124.7L112.5 127.5L109.7 136.9L106.9 127.5L97.5 124.7L106.9 121.9Z" fill="#09090b" opacity="0.35"/>
+  <defs>
+    <linearGradient id="cai-apple" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#bef264"/>
+      <stop offset="1" stop-color="#84cc16"/>
+    </linearGradient>
+  </defs>
+</svg>

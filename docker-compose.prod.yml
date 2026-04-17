@@ -1,0 +1,127 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: changeweave-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-changelogai}
+      POSTGRES_USER: ${DB_USERNAME:-changelogai}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changelogai}
+    volumes:
+      - cw_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${DB_USERNAME:-changelogai}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: changeweave-redis
+    restart: unless-stopped
+    volumes:
+      - cw_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mcp-server:
+    build:
+      context: ./mcp
+      dockerfile: Dockerfile
+    container_name: changeweave-mcp
+    restart: unless-stopped
+    profiles:
+      - mcp
+    environment:
+      MCP_TRANSPORT: http
+      MCP_PORT: 3100
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      LOG_LEVEL: info
+      CONTEXT_TOKEN_BUDGET: 8000
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3100/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: changeweave-api
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-changelogai}
+      DB_USERNAME: ${DB_USERNAME:-changelogai}
+      DB_PASSWORD: ${DB_PASSWORD:-changelogai}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      CORS_ORIGINS: ${CORS_ORIGINS:?CORS_ORIGINS is required}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      GITLAB_URL: ${GITLAB_URL:-https://gitlab.com}
+      GITLAB_CLIENT_ID: ${GITLAB_CLIENT_ID:-}
+      GITLAB_CLIENT_SECRET: ${GITLAB_CLIENT_SECRET:-}
+      BITBUCKET_CLIENT_ID: ${BITBUCKET_CLIENT_ID:-}
+      BITBUCKET_CLIENT_SECRET: ${BITBUCKET_CLIENT_SECRET:-}
+      BITBUCKET_DC_URL: ${BITBUCKET_DC_URL:-}
+      MCP_SERVER_URL: http://mcp-server:3100
+      MCP_ENABLED: ${MCP_ENABLED:-false}
+      PUBLIC_URL: ${PUBLIC_URL:?PUBLIC_URL is required}
+      MAIL_HOST: ${MAIL_HOST:-smtp.sendgrid.net}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-apikey}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    expose:
+      - "8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - default
+      - proxy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=${PUBLIC_URL}/api
+        - NEXT_PUBLIC_APP_URL=${PUBLIC_URL}
+    container_name: changeweave-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${PUBLIC_URL}/api
+      NEXT_PUBLIC_APP_URL: ${PUBLIC_URL}
+    expose:
+      - "3000"
+    depends_on:
+      - backend
+    networks:
+      - default
+      - proxy
+
+networks:
+  default:
+    driver: bridge
+  proxy:
+    name: changeweave-proxy
+    external: true
+
+volumes:
+  cw_pgdata:
+    driver: local
+  cw_redis:
+    driver: local
